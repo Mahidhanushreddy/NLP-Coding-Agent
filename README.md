@@ -70,7 +70,7 @@ python run.py
 ### Production Deployment
 For production, use the included Gunicorn WSGI server:
 ```bash
-gunicorn -w 4 -b 0.0.0.0:5000 run:app
+gunicorn -w 3 -b 0.0.0.0:5000 run:app
 ```
 
 ## 📚 Data Ingestion (Vector Database)
