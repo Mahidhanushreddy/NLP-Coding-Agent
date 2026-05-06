@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Developer Agent</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- Inside your <head> tag -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <!-- ADD THESE TWO LINES FOR SYNTAX HIGHLIGHTING -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <style>
+        :root {
+            --sidebar-bg: #0f172a;
+            --chat-bg: #1e293b;
+            --input-bg: #334155;
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --text-main: #f8fafc;
+            --code-bg: #020617;
+            --code-header: #1e293b;
+        }
+        body {
+            margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, sans-serif;
+            background-color: var(--chat-bg); color: var(--text-main);
+            display: flex; height: 100vh; overflow: hidden;
+        }
+
+        /* Sidebar Styling */
+        .sidebar {
+            width: 260px; background-color: var(--sidebar-bg); border-right: 1px solid #334155;
+            display: flex; flex-direction: column; padding: 15px; box-sizing: border-box;
+            transition: transform 0.3s ease; z-index: 1000;
+        }
+        .new-chat-btn {
+            background-color: var(--primary); color: white; border: none; padding: 12px;
+            border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.2s;
+            margin-bottom: 20px; text-align: center; font-size: 1rem; width: 100%;
+        }
+        .new-chat-btn:hover { background-color: var(--primary-hover); }
+        .history-list { flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;}
+        .history-item {
+            padding: 10px; border-radius: 6px; cursor: pointer;
+            background-color: #1e293b; color: #94a3b8; font-size: 0.9rem;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .history-item.active { background-color: #334155; color: white; border-left: 3px solid var(--primary); }
+
+        /* Main Chat Area */
+        .main-content { flex-grow: 1; display: flex; flex-direction: column; position: relative; min-width: 0; }
+
+        /* Header & Mobile Menu */
+        .header {
+            padding: 15px 20px; border-bottom: 1px solid #334155; font-size: 1.2rem;
+            font-weight: bold; background-color: var(--sidebar-bg);
+            display: flex; align-items: center; gap: 15px;
+        }
+        .mobile-menu-btn {
+            display: none; background: none; border: none; color: white;
+            font-size: 1.5rem; cursor: pointer; padding: 0;
+        }
+
+        .chat-box { flex-grow: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; }
+
+        /* Messages */
+        .message { max-width: 85%; padding: 12px 18px; border-radius: 8px; line-height: 1.6; word-wrap: break-word;}
+        .user-message { align-self: flex-end; background-color: var(--primary); color: white; border-bottom-right-radius: 0; }
+        .bot-message { align-self: flex-start; background-color: transparent; border-left: 4px solid var(--primary); padding-left: 15px;}
+
+        /* IDE Code Block Styling */
+        .code-container { background-color: var(--code-bg); border-radius: 8px; margin: 10px 0; overflow: hidden; border: 1px solid #334155; width: 100%;}
+        .code-header { background-color: var(--code-header); padding: 8px 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; color: #94a3b8; font-size: 0.85rem;}
+        .copy-btn { background: none; border: 1px solid #475569; color: #cbd5e1; border-radius: 4px; padding: 4px 10px; cursor: pointer; font-size: 0.8rem; transition: 0.2s;}
+        .copy-btn:hover { background-color: #475569; color: white;}
+        pre { margin: 0; padding: 15px; overflow-x: auto; font-family: 'Courier New', monospace; font-size: 0.9rem; }
+        /* Input Area */
+        .input-area { padding: 15px; background-color: var(--sidebar-bg); border-top: 1px solid #334155; display: flex; gap: 10px; }
+        input[type="text"] { flex-grow: 1; padding: 12px 15px; border: 1px solid #475569; border-radius: 6px; background-color: var(--input-bg); color: white; font-size: 1rem; min-width: 0;}
+        input[type="text"]:focus { outline: 2px solid var(--primary); border-color: transparent;}
+        .send-btn { padding: 12px 20px; border: none; border-radius: 6px; background-color: var(--primary); color: white; font-weight: bold; cursor: pointer; transition: 0.2s; white-space: nowrap;}
+        .send-btn:hover { background-color: var(--primary-hover); }
+        .loading { text-align: center; color: #94a3b8; font-style: italic; display: none; padding: 5px; font-size: 0.9rem;}
+
+        /* Overlay for mobile sidebar */
+        .sidebar-overlay {
+            display: none; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5); z-index: 999;
+        }
+        /* Upload & Delete Button Styling */
+        .action-buttons { display: flex; gap: 5px; margin-bottom: 20px; }
+        .upload-btn {
+            background-color: #475569; color: white; border: none; padding: 12px;
+            border-radius: 6px; cursor: pointer; flex-grow: 1; font-weight: bold;
+        }
+        .upload-btn:hover { background-color: #64748b; }
+        .delete-btn {
+        background: none; border: none; color: #ef4444; cursor: pointer;
+        font-size: 1.2rem; padding: 0 5px; opacity: 0.7; transition: 0.2s;
+        }
+        .delete-btn:hover { opacity: 1; }
+        .history-item-container {
+        display: flex; justify-content: space-between; align-items: center;
+        background-color: #1e293b; border-radius: 6px; margin-bottom: 8px;
+        }
+        .history-item { flex-grow: 1; margin-bottom: 0; background: transparent; border-radius: 0; }
+
+        /* New Attachment Display Styling */
+        .attachment-display {
+            padding: 8px 15px;
+            background-color: var(--input-bg);
+            color: #38bdf8;
+            font-size: 0.85rem;
+            display: none; /* Hidden by default */
+            border-top: 1px solid #334155;
+            border-bottom: 1px solid #334155;
+            align-items: center;
+            gap: 10px;
+        }
+        .remove-file-btn {
+            background: none;
+            border: none;
+            color: #ef4444;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+            padding: 0 5px;
+        }
+        .remove-file-btn:hover {
+            color: #b91c1c;
+        }
+
+        /* RESPONSIVE DESIGN (Tablets & Mobile) */
+        @media (max-width: 768px) {
+            .mobile-menu-btn { display: block; }
+            .sidebar { position: absolute; height: 100%; transform: translateX(-100%); }
+            .sidebar.open { transform: translateX(0); }
+            .sidebar-overlay.open { display: block; }
+            .message { max-width: 95%; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+    <div class="sidebar" id="sidebar">
+        <div class="action-buttons">
+            <button class="new-chat-btn" onclick="startNewChat()" style="margin-bottom:0;">New Chat</button>
+            <button class="upload-btn" onclick="document.getElementById('file-upload').click()">Upload File</button>
+            <input type="file" id="file-upload" style="display: none;" onchange="handleFileUpload(event)">
+        </div>
+        <div class="history-list" id="history-list"></div>
+    </div>
+
+    <div class="main-content">
+        <div class="header">
+            <button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
+            NLP Coding Agent
+        </div>
+        <div class="chat-box" id="chat-box"></div>
+        <div id="attachment-display" class="attachment-display"></div>
+        <div class="loading" id="loading">Agent is typing...</div>
+        <div class="input-area">
+            <input type="text" id="user-input" placeholder="Message the AI..." onkeypress="handleKeyPress(event)">
+            <button class="send-btn" onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
+    <script>
+    const BACKEND_URL = 'http://127.0.0.1:5000/api/chat';
+
+    // State Management
+    let currentSessionId = localStorage.getItem('current_session_id') || createSessionId();
+    let sessions = JSON.parse(localStorage.getItem('chat_sessions')) || [currentSessionId];
+    let sessionTitles = JSON.parse(localStorage.getItem('session_titles')) || {};
+    const pendingSessions = new Set();
+    const pendingUserMessages = {};
+    const pendingFiles = {};
+
+    const customRenderer = {
+    code(codeObj, language) {
+        // Handle different versions of marked.js argument passing
+        const codeText = typeof codeObj === 'object' ? codeObj.text : codeObj;
+        const lang = typeof codeObj === 'object' ? codeObj.lang : language;
+        const id = 'code-' + Math.random().toString(36).substr(2, 9);
+
+        let highlightedCode = codeText;
+        let validLanguage = 'plaintext';
+
+        // Apply Highlight.js if a language is specified and supported
+        if (lang && hljs.getLanguage(lang)) {
+            validLanguage = lang;
+            highlightedCode = hljs.highlight(codeText, { language: validLanguage }).value;
+        } else {
+            // Fallback: Just escape the code if no language or unsupported language
+            highlightedCode = codeText.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+
+        return `
+            <div class="code-container">
+                <div class="code-header">
+                    <span>${lang ? lang.toUpperCase() : 'CODE'}</span>
+                    <button class="copy-btn" onclick="copyToClipboard('${id}', this)">Copy</button>
+                </div>
+                <!-- Added hljs classes to trigger the CSS theme -->
+                <pre><code id="${id}" class="hljs language-${validLanguage}">${highlightedCode}</code></pre>
+            </div>`;
+    }
+};
+marked.use({ renderer: customRenderer });
+    function init() {
+        renderSidebar();
+        if (!sessions.includes(currentSessionId)) {
+            startNewChat();
+        } else {
+            loadChatHistory(currentSessionId);
+        }
+    }
+
+    function createSessionId() {
+        return 'chat_' + Math.random().toString(36).substring(2, 9);
+    }
+
+    function toggleSidebar() {
+        document.getElementById('sidebar').classList.toggle('open');
+        document.getElementById('sidebar-overlay').classList.toggle('open');
+    }
+
+    function startNewChat() {
+        currentSessionId = createSessionId();
+        sessions.unshift(currentSessionId);
+        localStorage.setItem('chat_sessions', JSON.stringify(sessions));
+        localStorage.setItem('current_session_id', currentSessionId);
+
+        document.getElementById('chat-box').innerHTML = '';
+        appendMessage('bot-message', 'Hello! Ask me a programming question.', false);
+        renderSidebar();
+        updateLoadingState();
+        updateAttachmentUI();
+        if(window.innerWidth <= 768) toggleSidebar();
+    }
+
+    function switchSession(id) {
+        currentSessionId = id;
+        localStorage.setItem('current_session_id', currentSessionId);
+        renderSidebar();
+        updateLoadingState();
+        loadChatHistory(currentSessionId);
+        updateAttachmentUI();
+        if(window.innerWidth <= 768) toggleSidebar();
+    }
+
+    function renderSidebar() {
+        const list = document.getElementById('history-list');
+        list.innerHTML = '';
+        sessions.forEach(id => {
+            const container = document.createElement('div');
+            container.className = `history-item-container ${id === currentSessionId ? 'active' : ''}`;
+            if(id === currentSessionId) { container.style.backgroundColor = '#334155'; container.style.borderLeft = '3px solid var(--primary)';}
+
+            const div = document.createElement('div');
+            div.className = 'history-item';
+
+            const title = sessionTitles[id] || 'New Chat...';
+            div.textContent = title;
+            div.title = title;
+            div.onclick = () => switchSession(id);
+
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'delete-btn';
+            deleteBtn.innerHTML = '×';
+            deleteBtn.title = "Delete Chat";
+            deleteBtn.onclick = (e) => { e.stopPropagation(); deleteChat(id); };
+
+            container.appendChild(div);
+            container.appendChild(deleteBtn);
+            list.appendChild(container);
+        });
+    }
+
+    async function sendMessage() {
+        const inputField = document.getElementById('user-input');
+        const fileInput = document.getElementById('file-upload');
+        const prompt = inputField.value.trim();
+        const requestSessionId = currentSessionId;
+        const file = pendingFiles[requestSessionId];
+
+        if (!prompt && !file) return;
+
+        if (!sessionTitles[requestSessionId]) {
+            let titleText = prompt ? prompt : `File: ${file.name}`;
+            sessionTitles[requestSessionId] = titleText.length > 28 ? titleText.substring(0, 28) + '...' : titleText;
+            localStorage.setItem('session_titles', JSON.stringify(sessionTitles));
+            renderSidebar();
+        }
+
+        let displayMessage = prompt;
+        if (file) {
+            displayMessage += `<br><small><i>Attached: ${file.name}</i></small>`;
+        }
+
+        inputField.value = '';
+        delete pendingFiles[requestSessionId];
+        updateAttachmentUI();
+
+        if (!pendingUserMessages[requestSessionId]) pendingUserMessages[requestSessionId] = [];
+        pendingUserMessages[requestSessionId].push(displayMessage);
+
+        appendMessage('user-message', displayMessage, true);
+        inputField.value = '';
+
+        pendingSessions.add(requestSessionId);
+        updateLoadingState();
+
+        const formData = new FormData();
+        if (prompt) formData.append('prompt', prompt);
+        formData.append('session_id', requestSessionId);
+        if (file) formData.append('file', file);
+
+        try {
+            const response = await fetch(BACKEND_URL, {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
+            const data = await response.json();
+
+            if (requestSessionId === currentSessionId) {
+                if (data && data.response) {
+                    const htmlContent = marked.parse(data.response);
+                    appendMessage('bot-message', htmlContent, true);
+                } else {
+                    appendMessage('bot-message', "Error: Received empty response.", false);
+                }
+            }
+
+        } catch (error) {
+            console.error("Fetch Error:", error);
+            if (requestSessionId === currentSessionId) {
+                appendMessage('bot-message', `Connection Error: Cannot reach backend.`, false);
+            }
+        } finally {
+            pendingSessions.delete(requestSessionId);
+
+            if (pendingUserMessages[requestSessionId]) {
+                pendingUserMessages[requestSessionId].shift();
+            }
+
+            updateLoadingState();
+            fileInput.value = "";
+            inputField.placeholder = "Message the AI..."; // Reset placeholder if changed
+        }
+    }
+
+    async function loadChatHistory(sessionId) {
+        const chatBox = document.getElementById('chat-box');
+        chatBox.innerHTML = '<div style="color: #94a3b8; text-align: center; padding: 20px;">Loading history...</div>';
+
+        try {
+            const response = await fetch(`http://127.0.0.1:5000/api/history/${sessionId}`);
+            const data = await response.json();
+            chatBox.innerHTML = '';
+
+            if (data.history && data.history.length > 0) {
+                data.history.forEach(msg => {
+                    const isBot = msg.role === 'bot';
+                    const cssClass = isBot ? 'bot-message' : 'user-message';
+                    const content = isBot ? marked.parse(msg.content) : msg.content;
+                    appendMessage(cssClass, content, isBot);
+                });
+            } else {
+                appendMessage('bot-message', 'Started a new session.', false);
+            }
+
+            if (pendingUserMessages[sessionId] && pendingUserMessages[sessionId].length > 0) {
+                pendingUserMessages[sessionId].forEach(msg => {
+                    appendMessage('user-message', msg, true);
+                });
+            }
+
+            chatBox.scrollTop = chatBox.scrollHeight;
+        } catch (error) {
+            chatBox.innerHTML = '';
+            appendMessage('bot-message', 'Error: Could not load chat history.', false);
+        } finally {
+            updateLoadingState();
+        }
+    }
+
+    async function deleteChat(sessionId) {
+        if(!confirm("Are you sure you want to delete this chat session?")) return;
+
+        try {
+            await fetch(`http://127.0.0.1:5000/api/history/${sessionId}`, { method: 'DELETE' });
+
+            sessions = sessions.filter(id => id !== sessionId);
+            delete sessionTitles[sessionId];
+
+            localStorage.setItem('chat_sessions', JSON.stringify(sessions));
+            localStorage.setItem('session_titles', JSON.stringify(sessionTitles));
+
+            if (sessions.length === 0) {
+                startNewChat();
+            } else if (currentSessionId === sessionId) {
+                switchSession(sessions[0]);
+            } else {
+                renderSidebar();
+            }
+        } catch (error) {
+            console.error("Failed to delete chat:", error);
+            alert("Failed to delete chat from database.");
+        }
+    }
+
+    function copyToClipboard(elementId, button) {
+        const codeElement = document.getElementById(elementId);
+        if (!codeElement) return;
+        navigator.clipboard.writeText(codeElement.innerText).then(() => {
+            button.textContent = 'Copied!';
+            button.style.backgroundColor = '#475569';
+            setTimeout(() => {
+                button.textContent = 'Copy';
+                button.style.backgroundColor = 'transparent';
+            }, 2000);
+        });
+    }
+
+    // --- MISSING FUNCTIONS ADDED BELOW ---
+
+    function updateLoadingState() {
+        const loadingIndicator = document.getElementById('loading');
+        if (pendingSessions.has(currentSessionId)) {
+            loadingIndicator.style.display = 'block';
+        } else {
+            loadingIndicator.style.display = 'none';
+        }
+    }
+
+    function appendMessage(type, content, isHtml = false) {
+        const chatBox = document.getElementById('chat-box');
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${type}`;
+
+        if (isHtml) messageDiv.innerHTML = content;
+        else messageDiv.textContent = content;
+
+        chatBox.appendChild(messageDiv);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function handleKeyPress(event) {
+        if (event.key === 'Enter') {
+            sendMessage();
+        }
+    }
+
+    function updateAttachmentUI() {
+    const attachmentDisplay = document.getElementById('attachment-display');
+    const inputField = document.getElementById('user-input');
+    const activeFile = pendingFiles[currentSessionId];
+
+    if (activeFile) {
+        // Show the attachment div with the file name and a remove button
+        attachmentDisplay.innerHTML = `
+            <span><strong>Attached:</strong> ${activeFile.name}</span>
+            <button class="remove-file-btn" onclick="removeAttachment()" title="Remove file">×</button>
+        `;
+        attachmentDisplay.style.display = 'flex';
+    } else {
+        // Hide the attachment div
+        attachmentDisplay.style.display = 'none';
+    }
+}
+
+// NEW: Function to let the user clear the attachment before sending
+function removeAttachment() {
+    delete pendingFiles[currentSessionId];
+    updateAttachmentUI();
+}
+
+    function handleFileUpload(event) {
+        const file = event.target.files[0];
+        if (file) {
+            // Attach the file ONLY to the currently active session
+            pendingFiles[currentSessionId] = file;
+            updateAttachmentUI();
+        }
+        // Clear the input so the user can select the same file again if needed
+        event.target.value = '';
+    }
+
+    init();
+    </script>
+</body>
+</html>

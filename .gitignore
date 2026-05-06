@@ -1,0 +1,23 @@
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Python / Flask
+__pycache__/
+*.py[cod]
+*$py.class
+instance/
+.webassets-cache
+
+# Application Specific
+uploads/
+
+# IDEs and OS files
+.vscode/
+.idea/
+.DS_Store

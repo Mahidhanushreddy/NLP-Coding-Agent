@@ -1,0 +1,10 @@
+flask
+flask-cors
+langchain-classic
+langchain-google-genai
+langchain-pinecone
+pinecone
+beautifulsoup4
+python-dotenv
+
+gunicorn
