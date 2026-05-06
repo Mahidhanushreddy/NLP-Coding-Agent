@@ -55,7 +55,7 @@ Create a `.env` file in the root directory and add the following keys. **Do not 
 GOOGLE_API_KEY=your_google_api_key_here
 PINECONE_API_KEY=your_pinecone_api_key_here
 PINECONE_INDEX_NAME=webapp
-MONGO_URI="mongodb://localhost:27017/"
+MONGO_URI="mongodb+srv://<user>:<password>@cluster0.ibht45g.mongodb.net/?appName=Cluster0"
 ```
 
 ## 🏃‍♂️ Running the Application
