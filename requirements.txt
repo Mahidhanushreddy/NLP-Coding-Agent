@@ -6,5 +6,5 @@ langchain-pinecone
 pinecone
 beautifulsoup4
 python-dotenv
-
+pymongo[srv]
 gunicorn
