@@ -14,8 +14,8 @@ __pycache__/
 instance/
 .webassets-cache
 
-# Application Specific
-uploads/
+
+
 
 # IDEs and OS files
 .vscode/
