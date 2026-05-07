@@ -360,7 +360,7 @@ marked.use({ renderer: customRenderer });
         chatBox.innerHTML = '<div style="color: #94a3b8; text-align: center; padding: 20px;">Loading history...</div>';
 
         try {
-            const response = await fetch(`http://127.0.0.1:5000/api/history/${sessionId}`);
+            const response = await fetch(`/api/history/${sessionId}`);
             const data = await response.json();
             chatBox.innerHTML = '';
 
