@@ -394,7 +394,7 @@ marked.use({ renderer: customRenderer });
         if(!confirm("Are you sure you want to delete this chat session?")) return;
 
         try {
-            await fetch(`http://127.0.0.1:5000/api/history/${sessionId}`, { method: 'DELETE' });
+            await fetch(`/api/history/${sessionId}`, { method: 'DELETE' });
 
             sessions = sessions.filter(id => id !== sessionId);
             delete sessionTitles[sessionId];
