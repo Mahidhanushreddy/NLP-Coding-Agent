@@ -12,6 +12,10 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <style>
+
+        * {
+            box-sizing: border-box;
+        }
         :root {
             --sidebar-bg: #0f172a;
             --chat-bg: #1e293b;
@@ -77,7 +81,7 @@
         pre { margin: 0; padding: 15px; overflow-x: auto; font-family: 'Courier New', monospace; font-size: 0.9rem; }
         /* Input Area */
         .input-area { padding: 15px; background-color: var(--sidebar-bg); border-top: 1px solid #334155; display: flex; gap: 10px; }
-        input[type="text"] { flex-grow: 1; padding: 12px 15px; border: 1px solid #475569; border-radius: 6px; background-color: var(--input-bg); color: white; font-size: 1rem; min-width: 0;}
+        input[type="text"] { flex-grow: 1; padding: 12px 15px; border: 1px solid #475569; border-radius: 6px; background-color: var(--input-bg); color: white; font-size: 16px; min-width: 0;}
         input[type="text"]:focus { outline: 2px solid var(--primary); border-color: transparent;}
         .send-btn { padding: 12px 20px; border: none; border-radius: 6px; background-color: var(--primary); color: white; font-weight: bold; cursor: pointer; transition: 0.2s; white-space: nowrap;}
         .send-btn:hover { background-color: var(--primary-hover); }
@@ -138,6 +142,16 @@
             .sidebar.open { transform: translateX(0); }
             .sidebar-overlay.open { display: block; }
             .message { max-width: 95%; }
+            .input-area { 
+                padding: 10px; 
+                gap: 8px; 
+            }
+            input[type="text"] { 
+                padding: 10px 12px; 
+            }
+            .send-btn { 
+                padding: 10px 16px; 
+            }
         }
     </style>
 </head>
