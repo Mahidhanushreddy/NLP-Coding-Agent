@@ -95,6 +95,12 @@ class RAG:
         """
 
         chat_history = self.history_manager.get_history(session_id, limit=10)
+        db_user_input = user_input
+        if file_path:
+            filename = os.path.basename(file_path)
+            # This matches the nice UI format your frontend uses
+            db_user_input = f"{user_input}<br><small><i>Attached: {filename}</i></small>"
+            
         file_context = ""
         if file_path:
             try:
