@@ -26,7 +26,7 @@ class ResponseEvaluator:
         consistent, non-creative evaluations. Constructs a LangChain PromptTemplate
         that grades responses on relevance, safety, professionalism, and formatting.
         """
-        self.eval_llm = ChatGoogleGenerativeAI(model="gemini-3-flash-preview", temperature=0.0)
+        self.eval_llm = ChatGoogleGenerativeAI(model="gemini-3.1-flash-lite-preview", temperature=0.0)
 
         self.eval_prompt = PromptTemplate(
             input_variables=["query", "response"],
