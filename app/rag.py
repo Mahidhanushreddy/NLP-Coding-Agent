@@ -132,7 +132,7 @@ class RAG:
         passed, final_response = self.evaluator.evaluate(user_input, draft_response)
 
         if passed:
-            self.history_manager.save_interaction(session_id, dbser_t, final_response, limit=10)
+            self.history_manager.save_interaction(session_id, db_user_input, final_response, limit=10)
 
         return final_response
 
