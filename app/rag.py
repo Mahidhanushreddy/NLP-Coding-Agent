@@ -120,7 +120,7 @@ class RAG:
                 file_context = f"[Error reading attached file: {str(e)}]"
 
         if file_context:
-            user_input = f"The user has attached a document with the following content:\n\n<document>\n{file_context}\n</document>\n\nUser Question:\n{user_input"
+            user_input = f"The user has attached a document with the following content:\n\n<document>\n{file_context}\n</document>\n\nUser Question:\n{user_input}"
 
         response = self.rag_chain.invoke({
             "input": user_input,
@@ -132,7 +132,7 @@ class RAG:
         passed, final_response = self.evaluator.evaluate(user_input, draft_response)
 
         if passed:
-            self.history_manager.save_interaction(session_id, user_input, final_response, limit=10)
+            self.history_manager.save_interaction(session_id, dbuser_input, final_response, limit=10)
 
         return final_response
 
